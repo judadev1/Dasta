@@ -1,0 +1,183 @@
+<!-- Página de selección de productos para un nuevo favor -->
+<!DOCTYPE html>
+<!-- Configuración de Thymeleaf y Spring Security -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Título dinámico con th:text -->
+    <title>Seleccionar Productos - Tienda del Lobo</title>
+    <!-- Enlaces CSS usando th:href para recursos estáticos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<!-- Elementos decorativos y navegación -->
+<div class="decorative-circle circle-1"></div>
+<div class="decorative-circle circle-2"></div>
+<i class="bi bi-box-seam decorative-icon top-right"></i>
+<i class="bi bi-bicycle decorative-icon bottom-left"></i>
+<!-- ... código del nav ... -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">
+            <div class="logo-container">
+                <img th:src="@{/images/LogoDasta.png}" alt="Dasta Logo" class="app-logo" />
+                <span class="logo-text">Dasta</span>
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item"> <a class="nav-link" th:href="@{/}"> <i class="bi bi-house-door-fill me-1"></i> Inicio </a> </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()"> <a class="nav-link" th:href="@{/favores/historial}"> <i class="bi bi-clock-history me-1"></i> Mi Historial </a> </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()"> <a class="nav-link" th:href="@{/profile}"> <i class="bi bi-person-fill me-1"></i> Mi Perfil </a> </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()"> <form th:action="@{/logout}" method="post" class="d-inline"> <button type="submit" class="btn-logout nav-link" style="border:0; background:none;"> <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión (<span sec:authentication="name">User</span>) </button> </form> </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()"> <a class="nav-link" th:href="@{/login}"> <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión / Registrarse </a> </li>
+            </ul>
+            <div class="d-flex align-items-center ms-lg-3" sec:authorize="isAuthenticated()"> <div class="badge-saldo"> <i class="bi bi-wallet2 me-1"></i> Saldo: <strong th:text="${#numbers.formatCurrency(persona?.saldo ?: 0)}">$0.00</strong> </div> </div>
+        </div>
+    </div>
+</nav>
+
+<main class="container fade-in">
+    <div class="card">
+        <!-- Encabezado con nombre de tienda dinámico -->
+        <div class="card-header">
+            <h2><i class="bi bi-cart-fill me-2"></i>Paso 2: Selecciona Productos de <span th:text="${tienda?.nombre}">la Tienda</span></h2>
+        </div>
+
+        <div class="p-4">
+            <!-- Formulario con validación usando th:object -->
+            <form th:action="@{/favores/crear/tienda}" th:object="${favorStoreRequest}" method="post">
+
+                <!-- Mensajes de error globales -->
+                <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger mx-0 mt-0 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>Error general:</span>
+                    <ul> <li th:each="err : ${#fields.globalErrors()}" th:text="${err}" /> </ul>
+                </div>
+
+                <!-- Campo oculto para ID de tienda -->
+                <input type="hidden" th:field="*{idTienda}" />
+
+                <!-- Lista de productos -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3><i class="bi bi-box-seam-fill me-2"></i>Productos Disponibles</h3>
+                    </div>
+                    <div class="p-3">
+                        <!-- Mensaje cuando no hay productos -->
+                        <div th:if="${#lists.isEmpty(productos)}" class="alert alert-info">
+                            <i class="bi bi-info-circle-fill me-2"></i>No hay productos disponibles para esta tienda.
+                        </div>
+
+                        <!-- Grid de productos usando th:each -->
+                        <div th:unless="${#lists.isEmpty(productos)}" class="product-grid">
+                            <!-- Tarjeta de producto con cantidad -->
+                            <div class="product-card" th:each="prod : ${productos}">
+                                <!-- ... detalles del producto ... -->
+                                <div class="product-image">
+                                    <!-- <img src="/images/products/producto_placeholder.png" th:alt="${prod.nombre}" /> -->
+                                    <img th:src="${
+                                        prod.idproductos == 1 ? '/images/BonBonBum.jpeg' :
+                                        prod.idproductos == 2 ? '/images/ChocoBreak.jpg' :
+                                        prod.idproductos == 3 ? '/images/Barquillos.webp' :
+                                        '/images/products/producto_placeholder.png'
+                                    }" th:alt="${prod.nombre}" />
+                                </div>
+                                <div>
+                                    <h4 class="product-name" th:text="${prod.nombre}">Nombre Producto</h4>
+                                    <p class="product-price" th:text="${#numbers.formatCurrency(prod.precio)}">Precio</p>
+                                </div>
+                                <!-- Control de cantidad con eventos JavaScript -->
+                                <div class="product-quantity">
+                                    <button type="button" class="btn btn-sm btn-outline-light"
+                                            th:attr="onclick='decreaseQuantity(\'' + 'quantity_' + ${prod.idproductos} + '\')'"
+                                            tabindex="-1">-</button>
+                                    <input type="number" th:name="${'quantity_' + prod.idproductos}"
+                                           th:id="${'quantity_' + prod.idproductos}" value="0" min="0" step="1"
+                                           class="form-control form-control-sm text-center" style="width: 60px;" />
+                                    <button type="button" class="btn btn-sm btn-outline-light"
+                                            th:attr="onclick='increaseQuantity(\'' + 'quantity_' + ${prod.idproductos} + '\')'"
+                                            tabindex="-1">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Mensajes de error de items -->
+                        <span class="text-danger" th:if="${#fields.hasErrors('items')}" th:errors="*{items}"></span>
+                    </div>
+                </div>
+
+                <!-- Detalles de entrega con validación -->
+                <div class="card mb-4">
+                    <!-- ... campos de dirección y descripción ... -->
+                    <div class="card-header">
+                        <h3><i class="bi bi-geo-alt-fill me-2"></i>Detalles de Entrega</h3>
+                    </div>
+                    <div class="p-3">
+                        <div class="form-group mb-3">
+                            <label for="direccion" class="form-label"> <i class="bi bi-geo-alt-fill me-1"></i> Dirección de Entrega:* </label>
+                            <input type="text" id="direccion" th:field="*{direccion}" class="form-control" required th:classappend="${#fields.hasErrors('direccion')}? 'field-error'" placeholder="Ej: Calle 10 # 20-30, Apto 101, Barrio..." />
+                            <span class="text-danger" th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}"></span>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="descripcion" class="form-label"> <i class="bi bi-card-text me-1"></i> Notas / Descripción adicional: </label>
+                            <textarea id="descripcion" rows="3" th:field="*{descripcion}" class="form-control" th:classappend="${#fields.hasErrors('descripcion')}? 'field-error'" placeholder="Ej: Timbrar en portería, preguntar por Juan..."></textarea>
+                            <span class="text-danger" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></span>
+                        </div>
+
+                    <!-- Selección de delivery con radio buttons -->
+                    <div class="form-group mb-3">
+                        <label class="form-label"><i class="bi bi-bicycle me-1"></i> Asignar Delivery (Opcional): </label>
+                        <div class="delivery-selection" id="delivery-options">
+                            <!-- Opción sin asignar -->
+                            <label class="delivery-card"
+                                   th:with="currentValue=*{idDelivery}"
+                                   th:classappend="${currentValue == null || #strings.isEmpty(currentValue)} ? 'selected' : ''"
+                                   onclick="selectDeliveryCard(this)">
+                                <!-- ... opciones de delivery ... -->
+                                <input type="radio" th:field="*{idDelivery}" value="" /> <div class="delivery-image"> <i class="bi bi-person-slash" style="font-size: 2.5rem; color: var(--secondary-color);"></i> </div>
+                                <div class="delivery-name">Sin Asignar</div>
+                                <div class="delivery-details">El sistema asignará el más cercano.</div>
+                            </label>
+
+                            <label th:each="d : ${deliveries}" class="delivery-card"
+                                   th:with="currentValue=*{idDelivery}"
+                                   th:classappend="${currentValue != null && currentValue == d.iddelivery} ? 'selected' : ''"
+                                   onclick="selectDeliveryCard(this)">
+                                <input type="radio" th:field="*{idDelivery}" th:value="${d.iddelivery}" /> <div class="delivery-image"> <img src="/images/Yo.jpeg" th:alt="${d.nombre1}" /> </div>
+                                <div class="delivery-name" th:text="${d.nombre1 + ' ' + d.apellido1}">Nombre Delivery</div>
+                                <div class="delivery-details"> <span class="badge bg-info me-1">Disponible</span> </div>
+                            </label>
+                        </div>
+                        <span class="text-danger" th:if="${#fields.hasErrors('idDelivery')}" th:errors="*{idDelivery}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de navegación -->
+                <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
+                    <a th:href="@{/favores/nuevo/seleccionar-tienda}" class="btn btn-outline-light order-sm-1">
+                        <i class="bi bi-arrow-left me-2"></i>Cambiar Tienda
+                    </a>
+                    <button type="submit" class="btn btn-primary order-sm-2">
+                        <i class="bi bi-check-lg me-2"></i>Crear Favor con Productos
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<!-- Footer usando th:replace -->
+<footer th:replace="~{layout/plantilla :: footer }"></footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/scripts.js}"></script>
+</body>
+</html>

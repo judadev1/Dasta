@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: favores_db
+      MYSQL_USER: springuser
+      MYSQL_PASSWORD: springpassword
+    ports:
+      - "13306:3306"
+    volumes:
+      - ./src/main/resources/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+    networks:
+      - spring-network
+    command: --default-authentication-plugin=mysql_native_password
+
+
+  spring-app:
+    build: .
+    container_name: spring_app
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/favores_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=springuser
+      - SPRING_DATASOURCE_PASSWORD=springpassword
+    networks:
+      - spring-network
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+    networks:
+      - spring-network
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  spring-network:
+    driver: bridge

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Historial - Dasta</title>
+    <!-- Recursos estáticos usando th:href para CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<!-- Elementos decorativos de fondo -->
+<div class="decorative-circle circle-1"></div>
+<div class="decorative-circle circle-2"></div>
+<i class="bi bi-box-seam decorative-icon top-right"></i>
+<i class="bi bi-bicycle decorative-icon bottom-left"></i>
+
+<!-- Barra de navegación con control de acceso -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <!-- Logo y enlace inicio -->
+        <a class="navbar-brand" th:href="@{/}">
+            <div class="logo-container">
+                <img th:src="@{/images/LogoDasta.png}" alt="Dasta Logo" class="app-logo" />
+                <span class="logo-text">Dasta</span>
+            </div>
+        </a>
+        <!-- Menú responsive -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Menú de navegación con control de acceso (sec:authorize) -->
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}">
+                        <i class="bi bi-house-door-fill me-1"></i> Inicio
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link active" th:href="@{/favores/historial}">
+                        <i class="bi bi-clock-history me-1"></i> Mi Historial
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/profile}">
+                        <i class="bi bi-person-fill me-1"></i> Mi Perfil
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn-logout nav-link" style="border:0; background:none;">
+                            <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión (<span sec:authentication="name">User</span>)
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" th:href="@{/login}">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión / Registrarse
+                    </a>
+                </li>
+            </ul>
+            <!-- Mostrar saldo solo para usuarios autenticados -->
+            <div class="d-flex align-items-center ms-lg-3" sec:authorize="isAuthenticated()">
+                <div class="badge-saldo">
+                    <i class="bi bi-wallet2 me-1"></i> Saldo: <strong th:text="${#numbers.formatCurrency(persona?.saldo ?: 0)}">$0.00</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="container fade-in">
+    <div class="card">
+        <!-- Encabezado de la sección -->
+        <div class="card-header">
+            <h2><i class="bi bi-clock-history me-2"></i>Mi Historial de Favores</h2>
+        </div>
+
+        <!-- Mensajes de éxito y error usando th:if -->
+        <div th:if="${successMessage}" class="alert alert-success mx-3 mt-3">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${successMessage}"></span>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger mx-3 mt-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMessage}"></span>
+        </div>
+
+        <div class="p-3">
+            <!-- Botón para nuevo favor -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">Favores Solicitados</h3>
+                <a th:href="@{/favores/nuevo/seleccionar-tienda}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle-fill me-2"></i>Nuevo Favor
+                </a>
+            </div>
+
+            <!-- Tabla de historial -->
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Valor</th>
+                        <th>Estado</th>
+                        <th>Repartidor</th>
+                        <th>Calificación</th>
+                        <th>Acciones</th>
+                    </tr>
+                    <!-- ... encabezados de tabla ... -->
+                    </thead>
+                    <tbody>
+                    <!-- Iteración sobre favores usando th:each -->
+                    <tr th:each="f : ${favores}">
+                        <td th:text="${f.idfavor}"></td>
+                        <!-- Formateo de fecha usando #dates -->
+                        <td th:text="${#dates.format(f.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td th:text="${f.descripcion}"></td>
+                        <!-- Formateo de moneda usando #numbers -->
+                        <td th:text="${#numbers.formatCurrency(f.valor)}"></td>
+                        <!-- Estados del favor usando th:if -->
+                        <td>
+                            <span th:if="${f.estado == T(juda.dev.dastaprueba1.entity.EstadoFavor).SOLICITADO}" class="badge bg-secondary">SOLICITADO</span>
+                            <span th:if="${f.estado == T(juda.dev.dastaprueba1.entity.EstadoFavor).ASIGNADO}" class="badge bg-info text-dark">ASIGNADO</span>
+                            <span th:if="${f.estado == T(juda.dev.dastaprueba1.entity.EstadoFavor).EN_PROCESO}" class="badge bg-primary">EN PROCESO</span>
+                            <span th:if="${f.estado == T(juda.dev.dastaprueba1.entity.EstadoFavor).ENTREGADO}" class="badge bg-success">ENTREGADO</span>
+                            <span th:if="${f.estado == T(juda.dev.dastaprueba1.entity.EstadoFavor).CANCELADO}" class="badge bg-danger">CANCELADO</span>
+                            <!-- ... otros estados ... -->
+                        </td>
+                        <!-- Información del repartidor con operador elvis (?:) -->
+                        <td th:text="${f.delivery?.nombre1 + ' ' + f.delivery?.apellido1 ?: '-'}"></td>
+                        <!-- Calificación con estrellas -->
+                        <td>
+                                    <span th:if="${f.calificacion}" class="rating-display">
+                                        <!-- Repetición de estrellas usando #numbers.sequence -->
+                                        <i class="bi bi-star-fill" th:each="i : ${#numbers.sequence(1, f.calificacion.nota)}"></i>
+                                        <span th:text="${f.calificacion.nota + ' estrellas'}"></span>
+                                    </span>
+                            <span th:unless="${f.calificacion}">-</span>
+                        </td>
+                        <!-- Botón de calificar condicional -->
+                        <td>
+                            <a th:if="${f.estado == T(juda.dev.dastaprueba1.entity.EstadoFavor).ENTREGADO and f.delivery != null and f.calificacion == null}"
+                               th:href="@{/favores/calificar/{id}(id=${f.idfavor})}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-star-fill me-1"></i> Calificar
+                            </a>
+                            <span th:if="${f.calificacion != null}" class="badge badge-secondary">Calificado</span>
+                        </td>
+                    </tr>
+                    <!-- Mensaje cuando no hay favores -->
+                    <tr th:if="${#lists.isEmpty(favores)}">
+                        <td colspan="8" class="text-center">
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle-fill me-2"></i>No tienes favores en tu historial.
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer usando th:replace -->
+<footer th:replace="~{layout/plantilla :: footer }"></footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/scripts.js}"></script>
+</body>
+</html>

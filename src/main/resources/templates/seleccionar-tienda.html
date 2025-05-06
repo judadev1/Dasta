@@ -1,0 +1,140 @@
+<!-- Página de selección de tienda para nuevo favor -->
+<!DOCTYPE html>
+<!-- Configuración de Thymeleaf y Spring Security -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Tienda - Dasta</title>
+    <!-- Enlaces CSS usando th:href para recursos estáticos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<!-- Elementos decorativos de fondo -->
+<div class="decorative-circle circle-1"></div>
+<div class="decorative-circle circle-2"></div>
+<i class="bi bi-box-seam decorative-icon top-right"></i>
+<i class="bi bi-bicycle decorative-icon bottom-left"></i>
+
+<!-- Barra de navegación con control de acceso -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">
+            <div class="logo-container">
+                <img th:src="@{/images/LogoDasta.png}" alt="Dasta Logo" class="app-logo" />
+                <span class="logo-text">Dasta</span>
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}">
+                        <i class="bi bi-house-door-fill me-1"></i> Inicio
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/favores/historial}">
+                        <i class="bi bi-clock-history me-1"></i> Mi Historial
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/profile}">
+                        <i class="bi bi-person-fill me-1"></i> Mi Perfil
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn-logout nav-link" style="border:0; background:none;">
+                            <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión (<span sec:authentication="name">User</span>)
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" th:href="@{/login}">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión / Registrarse
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center ms-lg-3" sec:authorize="isAuthenticated()">
+                <div class="badge-saldo">
+                    <i class="bi bi-wallet2 me-1"></i> Saldo: <strong th:text="${#numbers.formatCurrency(persona?.saldo ?: 0)}">$0.00</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="container fade-in">
+    <div class="card">
+        <!-- Encabezado de selección de tienda -->
+        <div class="card-header">
+            <h2><i class="bi bi-shop me-2"></i>Paso 1: Selecciona una Tienda</h2>
+        </div>
+
+        <!-- Mensaje de error usando th:if y param -->
+        <div th:if="${param.error}" class="alert alert-danger mx-3 mt-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Error al cargar productos de la tienda seleccionada.
+        </div>
+
+        <div class="p-4">
+            <div class="store-list">
+                <!-- Lista de tiendas usando th:each -->
+                <div class="store-card" th:each="tienda : ${tiendas}">
+                    <!-- Enlace dinámico a productos de tienda -->
+                    <a th:href="@{/favores/nuevo/seleccionar-productos(tiendaId=${tienda.idtienda})}" class="store-link">
+                        <div class="store-logo">
+                            <img th:src="@{/images/TiendaDelLobo.JPG}" th:alt="${tienda.nombre}" />
+                        </div>
+                        <!-- Nombre de tienda dinámico -->
+                        <h3 class="store-name" th:text="${tienda.nombre}">Nombre Tienda</h3>
+                        <span class="badge bg-success">Disponible</span>
+                    </a>
+                </div>
+
+                <!-- Tiendas próximamente (estáticas) -->
+                <div class="store-card disabled">
+                    <a href="#" class="store-link" style="pointer-events: none;"> <div class="store-logo">
+                        <img th:src="@{/images/TiendaOto.jpg}" alt="Próxima Tienda 1" />
+                    </div>
+                        <h3 class="store-name">Tienda Oto Estadio</h3>
+                        <span class="badge bg-secondary">Próximamente</span>
+                    </a>
+                </div>
+                <div class="store-card disabled">
+                    <a href="#" class="store-link" style="pointer-events: none;"> <div class="store-logo">
+                        <img th:src="@{/images/D1_Ara.jpg}" alt="Próxima Tienda 2" />
+                    </div>
+                        <h3 class="store-name">Otras Tiendas</h3>
+                        <span class="badge bg-secondary">Próximamente</span>
+                    </a>
+                </div>
+
+                <!-- Mensaje cuando no hay tiendas usando th:if y #lists -->
+                <div th:if="${#lists.isEmpty(tiendas)}" class="alert alert-info w-100">
+                    <i class="bi bi-info-circle-fill me-2"></i>No hay tiendas disponibles en este momento.
+                </div>
+            </div>
+
+            <!-- Botón de retorno usando th:href -->
+            <div class="mt-4 text-center">
+                <a th:href="@{/}" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-left me-2"></i>Cancelar y volver al inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Footer usando th:replace -->
+<footer th:replace="~{layout/plantilla :: footer }"></footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/scripts.js}"></script>
+</body>
+</html>

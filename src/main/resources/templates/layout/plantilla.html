@@ -1,0 +1,33 @@
+<!-- Plantilla que define el fragmento del pie de página reutilizable -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Plantilla</title>
+</head>
+<body>
+<!--
+    Fragment del footer que contiene:
+    - Información del estudiante
+    - Datos de la universidad
+    - Año actual dinámico
+    th:fragment="footer": Permite reutilizar este bloque en otras páginas
+-->
+<footer th:fragment="footer">
+    <div class="container">
+        <!-- Información personal y académica -->
+        <p class="footer-info">
+            <span class="student-name">Juan David Arboleda Vallecilla</span> |
+            <span class="university-name">UCP - Semestre 4</span> |
+            <span class="program-name">Tecnología en Desarrollo de Software</span>
+        </p>
+        <!--
+            Copyright con año dinámico
+            th:text="${#dates.year(#dates.createNow())}": Inserta el año actual automáticamente
+        -->
+        <p class="mt-2">&copy; <span th:text="${#dates.year(#dates.createNow())}">2025</span> Dasta</p>
+    </div>
+</footer>
+
+</body>
+</html>
