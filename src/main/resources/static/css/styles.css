@@ -1,3 +1,10 @@
+/* Reset básico */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   background-color: var(--dark-bg);
   color: var(--text-light); /* Color de texto por defecto más claro */
@@ -14,12 +21,20 @@ body {
 }
 
 main {
-  flex: 1; /* Para footer fijo */
+  flex: 1 0 auto;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 15px;
   position: relative;
+  padding-bottom: 2rem;
+}
+
+main.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 15px;
+  padding-right: 15px;
 }
 
 /* Corregir color de texto en inputs, textareas y selects */
@@ -239,6 +254,17 @@ select {
 }
 
 /* === PÁGINA LOGIN === */
+.login-container {
+  max-width: 550px;
+  margin: 2rem auto;
+  position: relative;
+  z-index: 1;
+}
+
+.card.login-container {
+  margin-bottom: 3rem;
+}
+
 .login-container h2,
 .auth-tab {
   color: var(--text-light); /* Asegura que los títulos se vean */
@@ -309,6 +335,8 @@ select {
 
 /* === FOOTER FIJO === */
 footer {
+  flex-shrink: 0;
+  width: 100%;
   background: linear-gradient(to right, rgba(18, 20, 24, 0.95), rgba(30, 33, 38, 0.95));
   padding: 1.5rem 0;
   text-align: center;
@@ -317,7 +345,7 @@ footer {
   border-top: 1px solid var(--border-color);
   position: relative;
   overflow: hidden;
-  width: 100%;
+  z-index: 2;
   color: var(--text-muted); /* Color base para el footer */
 }
 
@@ -518,12 +546,13 @@ footer {
 
 /* Elementos decorativos */
 .decorative-icon {
-  position: absolute;
+  position: fixed;
   opacity: 0.05;
   font-size: 15rem;
-  z-index: -1;
+  z-index: 0;
   color: var(--primary-color);
   filter: blur(1px);
+  pointer-events: none;
 }
 
 .top-right {
@@ -539,24 +568,11 @@ footer {
 }
 
 .decorative-circle {
-  position: absolute;
+  position: fixed;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(40, 167, 69, 0.1) 0%, rgba(40, 167, 69, 0) 70%);
-  z-index: -1;
-}
-
-.circle-1 {
-  width: 400px;
-  height: 400px;
-  top: -200px;
-  right: -200px;
-}
-
-.circle-2 {
-  width: 300px;
-  height: 300px;
-  bottom: -150px;
-  left: -150px;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* Animaciones */
@@ -1141,7 +1157,7 @@ table tbody tr:last-child td {
 }
 
 .product-card {
-  background: linear-gradient(145deg, var(--card-bg), var(--dark-bg));
+  background: linear-gradient(145deg, var (--card-bg), var(--dark-bg));
   border: 1px solid var(--border-color);
   border-radius: var(--card-border-radius);
   padding: 1.75rem;
